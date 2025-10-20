@@ -1,0 +1,10 @@
+pandas
+chardet
+jieba
+scikit-learn
+numpy
+matplotlib
+seaborn
+gensim
+nltk
+tqdm

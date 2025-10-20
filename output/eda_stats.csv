@@ -1,0 +1,4 @@
+file,nrows,avg_len,median_len
+ChnSentiCorp_htl_all.csv,7765,128.51860914359304,84.0
+online_shopping_10_cats.csv,62774,58.41396119412496,34.0
+waimai_10k.csv,11987,25.048552598648534,17.0
