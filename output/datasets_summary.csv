@@ -1,4 +1,0 @@
-file,shape,columns
-ChnSentiCorp_htl_all.csv,"(7765, 1)",review
-online_shopping_10_cats.csv,"(62774, 2)",cat|review
-waimai_10k.csv,"(11987, 1)",review
