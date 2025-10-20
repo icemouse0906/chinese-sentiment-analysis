@@ -1,3 +1,4 @@
+
 # 中文情感分析与主题建模实验
 
 <p align="center">
@@ -7,6 +8,19 @@
 	<img src="https://img.shields.io/badge/Auto--Report-Docx-blueviolet?logo=microsoftword" alt="Auto Report">
 	<img src="https://img.shields.io/badge/Data-Chinese%20Reviews-orange" alt="Data">
 </p>
+
+---
+
+## 许可与数据来源
+
+- 本项目采用 MIT License，详见仓库根目录 LICENSE 文件。
+- 所用数据集仅用于教学/研究目的，部分数据来自公开竞赛或学术资源：
+	- [ChnSentiCorp](https://github.com/pengming617/bert_classification)（酒店评论）
+	- [online_shopping_10_cats](https://github.com/brightmart/nlp_chinese_corpus)（电商评论）
+	- [waimai_10k](https://github.com/SophonPlus/ChineseNlpCorpus)（外卖评论）
+- 请勿将数据用于商业用途，使用时请遵守原数据集许可。
+
+---
 
 
 # 中文情感分析与主题建模实验
