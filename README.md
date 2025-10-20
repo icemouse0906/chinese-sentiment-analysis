@@ -62,11 +62,17 @@ This project provides a full pipeline for Chinese sentiment analysis and topic m
 └── README.md
 ```
 
+
 ## 数据集说明 | Dataset Description
 
-- 电商评论数据：`NLP数据集/电商评论数据/online_shopping_10_cats.csv`
-- 酒店评论数据：`NLP数据集/酒店评论数据/ChnSentiCorp_htl_all.csv`
-- 外卖评论数据：`NLP数据集/外卖评论数据/waimai_10k.csv`
+本项目不直接包含原始数据集，请按如下方式下载：
+
+- 电商评论数据：[online_shopping_10_cats.csv](https://github.com/brightmart/nlp_chinese_corpus)
+- 酒店评论数据：[ChnSentiCorp_htl_all.csv](https://github.com/pengming617/bert_classification)
+- 外卖评论数据：[waimai_10k.csv](https://github.com/SophonPlus/ChineseNlpCorpus)
+
+下载后请放置于 `NLP数据集/` 对应子目录。
+如需校验完整性，可参考原仓库的md5/sha1校验和。
 
 每个数据集均为CSV格式，包含文本内容及标签（部分需自动生成）。
 
@@ -80,20 +86,69 @@ This project provides a full pipeline for Chinese sentiment analysis and topic m
 pip install -r requirements.txt
 ```
 
-## 快速开始 | Quick Start
+
+
+## 环境创建与复现流程 | Environment & Reproducibility
+
+推荐使用conda或venv创建隔离环境：
+
+```bash
+# 使用conda
+conda create -n sentiment python=3.8
+conda activate sentiment
+pip install -r requirements.txt
+
+# 或使用venv
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+完整复现流程：
+1. 下载数据集并放置到 NLP数据集/ 目录
+2. 安装依赖
+3. 一键运行主流程（见下方命令）
+4. 查看 output/ 目录结果与自动生成的实验报告
+
+## 项目流程图 | Project Flowchart
+
+```mermaid
+graph TD
+	A[数据集下载] --> B[数据检查/预处理]
+	B --> C[伪标签生成/真标签分流]
+	C --> D[分类模型训练与评测]
+	D --> E[LDA主题建模]
+	E --> F[自动化实验报告]
+```
 
 1. 创建并激活Python环境
 2. 安装依赖
-3. 运行数据检查脚本：
+3. 下载数据集并放置到 `NLP数据集/` 目录
+4. 一键运行主流程（推荐）：
 
 ```bash
-python scripts/01_inspect_datasets.py
+python run.py --dataset hotel --model nb --seed 42 --mode pseudo --stage report
 ```
 
-输出：控制台显示每个数据集的行数、列名、前5条样本，并在`output/`目录写入`samples_inspection.csv`。
+参数说明：
+- --dataset [hotel|ecommerce|waimai] 选择数据集
+- --model [nb|svm] 选择分类模型
+- --seed 随机种子，保证可复现
+- --mode [true|pseudo] 标签模式（真标签/伪标签）
+- --stage [eda|label|train|lda|report] 流程阶段
+
+如需分步运行，可分别指定 --stage 参数。
+
+输出：控制台显示进度，结果写入 output/ 目录。
 
 
-## 完整流程 | Full Pipeline
+
+## LDA主题建模质量与可视化建议
+
+- 主题数（K）建议通过 grid search + coherence 指标（如 c_v）选取，避免主观指定。
+- 推荐使用 pyLDAVis 进行交互式主题可视化，便于理解每个主题的关键词分布和代表样本。
+- 可在 output/ 目录保存 pyLDAVis HTML 文件，或在报告中插入主题-样本对照表。
+
 
 1. 数据集结构检查与样本展示
 	```bash
@@ -126,9 +181,17 @@ python scripts/01_inspect_datasets.py
 	- 自动完成数据平衡、EDA、模型调参、评估与实验报告（docx）生成。
 
 
+
+## 评测规范 | Evaluation Protocol
+
+- **真标签评测**：对于自带标签的数据集（如 ChnSentiCorp、waimai_10k），请严格 train/valid/test 划分，禁止在全量数据上做重采样和EDA后再切分，避免数据泄漏。
+- **伪标签实验**：仅用于无标签数据集或弱监督探索，结果仅供参考。
+- **指标输出**：所有分类模型均输出 precision、recall、F1、混淆矩阵、分类报告（classification_report），并保存到 output/ 目录。
+- **报告分栏**：实验报告中将真标签评测与伪标签实验分栏呈现，便于对比。
+
 ## 结果与报告 | Results & Report
 
-- 所有中间结果、可视化图、分类报告、主题分析等均输出到`output/`或`results/`目录。
+- 所有中间结果、可视化图、分类报告、主题分析等均输出到`output/`目录。
 - 自动生成的实验报告`experiment_report_final.docx`，包含三类数据集的完整分析与模型评估。
 
 ### 代表性结果展示

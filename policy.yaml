@@ -1,0 +1,18 @@
+# 规则×模型混合策略配置
+# 优先级：规则 > 模型
+# 置信度阈值可调
+
+rules:
+  sensitive_words:
+    - "差"
+    - "脏"
+    - "失望"
+    - "赞"
+  rule_label:
+    "差": 0
+    "脏": 0
+    "失望": 0
+    "赞": 1
+model:
+  threshold: 0.7
+  abstain: true
