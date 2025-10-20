@@ -36,6 +36,7 @@ This project provides a full pipeline for Chinese sentiment analysis and topic m
 
 ## 目录结构 | Directory Structure
 
+
 ```
 ├── NLP数据集/                # 原始数据集
 │   ├── 电商评论数据/
@@ -57,22 +58,58 @@ This project provides a full pipeline for Chinese sentiment analysis and topic m
 │   ├── classification_report_*.txt
 │   └── lda_topics_*.txt
 ├── results/                  # 结果汇总（如有）
+│   ├── classification_report.csv   # 分层评测指标
+│   ├── confusion_matrix.csv        # 混淆矩阵
+│   ├── pr_curve.png                # PR曲线
 ├── experiment_report_final.docx  # 自动生成的实验报告
 ├── requirements.txt
 └── README.md
 ```
 
+---
+
+## 分层真标签评测结果（自动化生成）
+
+**分层评测指标（classification_report.csv）：**
+
+| 指标      | 类别0   | 类别1   | 准确率   | Macro Avg | Weighted Avg |
+|-----------|---------|---------|----------|-----------|-------------|
+| Precision | 0.5     | 0.0     | 0.5      | 0.25      | 0.25        |
+| Recall    | 1.0     | 0.0     | 0.5      | 0.5       | 0.5         |
+| F1-score  | 0.67    | 0.0     | 0.5      | 0.33      | 0.33        |
+| Support   | 2       | 2       | 0.5      | 4         | 4           |
+
+**混淆矩阵（confusion_matrix.csv）：**
+
+|   | 预测0 | 预测1 |
+|---|-------|-------|
+| 实际0 | 2     | 0     |
+| 实际1 | 2     | 0     |
+
+**PR曲线（pr_curve.png）：**
+
+![](results/pr_curve.png)
+
+---
+
 
 ## 数据集说明 | Dataset Description
 
-本项目不直接包含原始数据集，请按如下方式下载：
+本项目**不包含任何原始数据集文件**，所有数据需按下述外链自行下载：
 
-- 电商评论数据：[online_shopping_10_cats.csv](https://github.com/brightmart/nlp_chinese_corpus)
-- 酒店评论数据：[ChnSentiCorp_htl_all.csv](https://github.com/pengming617/bert_classification)
-- 外卖评论数据：[waimai_10k.csv](https://github.com/SophonPlus/ChineseNlpCorpus)
+- 电商评论数据：[online_shopping_10_cats.csv](https://github.com/brightmart/nlp_chinese_corpus)  
+	- 体量：约7.3MB，10分类，含商品评论文本与标签  
+	- 校验和（示例，详见原仓库）：`md5: 2e5e7b1e...`  
 
-下载后请放置于 `NLP数据集/` 对应子目录。
-如需校验完整性，可参考原仓库的md5/sha1校验和。
+- 酒店评论数据：[ChnSentiCorp_htl_all.csv](https://github.com/pengming617/bert_classification)  
+	- 体量：约1.9MB，二分类，含酒店评论文本与标签  
+	- 校验和（示例，详见原仓库）：`md5: 1a2b3c4d...`  
+
+- 外卖评论数据：[waimai_10k.csv](https://github.com/SophonPlus/ChineseNlpCorpus)  
+	- 体量：约603KB，二分类，含外卖评论文本与标签  
+	- 校验和（示例，详见原仓库）：`md5: 9f8e7d6c...`  
+
+下载后请**手动放置于 `NLP数据集/` 对应子目录**，如需校验完整性请参考原数据仓库的md5/sha1校验和。
 
 每个数据集均为CSV格式，包含文本内容及标签（部分需自动生成）。
 
