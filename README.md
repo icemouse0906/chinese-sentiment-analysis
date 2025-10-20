@@ -160,6 +160,45 @@ Waimai10k - SVM PR Curve:
 
 ---
 
+### Results (Model Calibration & Rejection) - 任务B1：不确定性校准与拒识
+
+**校准效果对比（ChnSentiCorp数据集，SVM模型）：**
+
+| 指标类型 | 校准前 | 校准后 | 变化 |
+|---------|--------|--------|------|
+| 准确率 (Accuracy) | 0.8134 | 0.8147 | +0.13% |
+| 宏F1 (Macro F1) | 0.8058 | 0.8076 | +0.18% |
+| ECE (Expected Calibration Error) | 0.1275 | 0.1480 | +0.0205 |
+
+**拒识策略效果（Platt Scaling校准后）：**
+
+| 策略 | 准确率 (Accuracy) | 覆盖率 (Coverage) | 准确率提升 | 说明 |
+|------|------------------|------------------|-----------|------|
+| 无拒识（基线） | 0.8147 | 100% | - | 所有样本均预测 |
+| **最优拒识** (阈值=0.91) | **0.8849** | **50.32%** | **+7.02%** | 拒绝低置信度样本 |
+
+**关键发现：**
+- **Platt Scaling校准**：虽然准确率略有提升（+0.13%），但ECE意外上升，说明该模型在ChnSentiCorp数据集上原始输出已较为可靠，Platt Scaling未能进一步改善校准度。这可能与数据集特性和SVM决策函数特点相关。
+- **拒识策略效果显著**：在置信度阈值=0.91时，通过拒识约50%的低置信度样本，使剩余样本的准确率从81.47%提升至**88.49%**，提升幅度达**7.02个百分点**，远超3%的目标要求。
+- **准确率-覆盖率权衡**：拒识策略以牺牲50%覆盖率为代价换取7%准确率提升，适用于高精度要求场景（如医疗诊断、金融风控等），低置信度样本可转人工审核。
+- **ECE异常分析**：校准后ECE上升可能原因：①原始SVM决策边界已较优；②Platt Scaling假设（Sigmoid拟合）不完全适配该数据分布；③测试集较小（777样本）导致统计波动。建议使用Temperature Scaling或Isotonic Regression替代验证。
+
+**可视化结果：**
+
+Reliability Diagram（校准前后对比）：
+![](results/calibration/chnsenticorp/svm/reliability_diagram.png)
+
+拒识策略效果曲线：
+![](results/calibration/chnsenticorp/svm/rejection_curve.png)
+
+**详细结果文件路径：**
+- 校准汇总: `results/calibration/chnsenticorp/svm/calibration_summary.csv`
+- 拒识详细结果: `results/calibration/chnsenticorp/svm/rejection_results.csv`
+- Reliability Diagram: `results/calibration/chnsenticorp/svm/reliability_diagram.png`
+- 拒识曲线: `results/calibration/chnsenticorp/svm/rejection_curve.png`
+
+---
+
 ### Results (Weak Labels) - 伪标签实验（历史结果）
 
 （此处展示之前使用SnowNLP等弱监督方法的结果，与上述真标签基线形成对照）
