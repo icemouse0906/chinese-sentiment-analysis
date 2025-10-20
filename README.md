@@ -68,27 +68,46 @@ This project provides a full pipeline for Chinese sentiment analysis and topic m
 
 ---
 
-## 分层真标签评测结果（自动化生成）
+## 评测结果汇总 | Results Summary
 
-**分层评测指标（classification_report.csv）：**
+### Results (True Labels) - 任务A1：真标签评测基线
 
-| 指标      | 类别0   | 类别1   | 准确率   | Macro Avg | Weighted Avg |
-|-----------|---------|---------|----------|-----------|-------------|
-| Precision | 0.5     | 0.0     | 0.5      | 0.25      | 0.25        |
-| Recall    | 1.0     | 0.0     | 0.5      | 0.5       | 0.5         |
-| F1-score  | 0.67    | 0.0     | 0.5      | 0.33      | 0.33        |
-| Support   | 2       | 2       | 0.5      | 4         | 4           |
+**汇总指标表（ChnSentiCorp & Waimai10k）：**
 
-**混淆矩阵（confusion_matrix.csv）：**
+| 数据集        | 模型  | 准确率 (Acc) | 宏F1 (Macro F1) | 加权F1 (Weighted F1) |
+|---------------|-------|--------------|-----------------|---------------------|
+| ChnSentiCorp  | NB    | 0.6324       | 0.5975          | 0.5975              |
+| ChnSentiCorp  | SVM   | 0.6400       | 0.6265          | 0.6265              |
+| Waimai10k     | NB    | 0.5901       | 0.5553          | 0.5553              |
+| Waimai10k     | SVM   | 0.6574       | 0.6300          | 0.6300              |
 
-|   | 预测0 | 预测1 |
-|---|-------|-------|
-| 实际0 | 2     | 0     |
-| 实际1 | 2     | 0     |
+**详细结果文件路径：**
+- ChnSentiCorp NB: `results/chnsenticorp/nb/` (classification_report.csv, confusion_matrix.png, pr_curve.png)
+- ChnSentiCorp SVM: `results/chnsenticorp/svm/` (classification_report.csv, confusion_matrix.png, pr_curve.png)
+- Waimai10k NB: `results/waimai10k/nb/` (classification_report.csv, confusion_matrix.png, pr_curve.png)
+- Waimai10k SVM: `results/waimai10k/svm/` (classification_report.csv, confusion_matrix.png, pr_curve.png)
 
-**PR曲线（pr_curve.png）：**
+**混淆矩阵与PR曲线示例：**
 
-![](results/pr_curve.png)
+ChnSentiCorp - SVM Confusion Matrix:
+![](results/chnsenticorp/svm/confusion_matrix.png)
+
+ChnSentiCorp - SVM PR Curve:
+![](results/chnsenticorp/svm/pr_curve.png)
+
+Waimai10k - SVM Confusion Matrix:
+![](results/waimai10k/svm/confusion_matrix.png)
+
+Waimai10k - SVM PR Curve:
+![](results/waimai10k/svm/pr_curve.png)
+
+---
+
+### Results (Weak Labels) - 伪标签实验（历史结果）
+
+（此处展示之前使用SnowNLP等弱监督方法的结果，与上述真标签基线形成对照）
+
+详见 `results/` 目录中的历史评测结果文件。
 
 ---
 
