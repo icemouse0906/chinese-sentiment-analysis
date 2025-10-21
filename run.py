@@ -1,3 +1,51 @@
+#!/usr/bin/env python3
+"""
+统一入口脚本：run.py
+用法：python run.py [任务名] [可选参数]
+示例：python run.py a1
+        python run.py c2 --mode cli --text "很好吃"
+"""
+import sys
+import os
+import subprocess
+import argparse
+from pathlib import Path
+
+TASK_MAP = {
+    'a1': 'scripts/task_a1_baseline.py',
+    'a2': 'scripts/task_a2_transformer.py',
+    'a3': 'scripts/task_a3_lda_quality.py',
+    'b1': 'scripts/task_b1_calibration.py',
+    'b2': 'scripts/task_b2_cross_domain.py',
+    'c1': 'scripts/task_c1_weak_supervision.py',
+    'c2': 'scripts/task_c2_retrieval.py',
+    'c3': 'scripts/task_c3_augmentation.py',
+}
+
+
+def main():
+    parser = argparse.ArgumentParser(description='统一入口：运行各任务脚本')
+    parser.add_argument('task', type=str, help='任务名，如a1、b2、c3')
+    parser.add_argument('extra', nargs=argparse.REMAINDER, help='传递给子脚本的参数')
+    args = parser.parse_args()
+
+    task = args.task.lower()
+    if task not in TASK_MAP:
+        print(f"未知任务: {task}")
+        print(f"可选任务: {list(TASK_MAP.keys())}")
+        sys.exit(1)
+
+    script_path = TASK_MAP[task]
+    if not Path(script_path).exists():
+        print(f"脚本不存在: {script_path}")
+        sys.exit(1)
+
+    cmd = [sys.executable, script_path] + args.extra
+    print(f"运行: {' '.join(cmd)}")
+    subprocess.run(cmd)
+
+if __name__ == '__main__':
+    main()
 import argparse
 import sys
 import os

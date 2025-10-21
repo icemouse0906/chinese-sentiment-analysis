@@ -1,0 +1,16 @@
+{
+  "project": "chinese-sentiment-analysis",
+  "author": "MITI",
+  "date": "2025-10-21",
+  "python_version": "3.13",
+  "os": "macOS",
+  "env": "venv",
+  "tasks_completed": ["A1", "A2", "A3", "B1", "B2", "C1", "C2", "C3"],
+  "requirements_file": "requirements-locked.txt",
+  "entrypoint": "run.py",
+  "hardware": {
+    "cpu": "Apple M1/M2/M3 (推测)",
+    "ram_gb": "自动检测可补充"
+  },
+  "notes": "所有实验均可通过run.py统一入口复现，依赖已锁定，环境信息已记录。"
+}

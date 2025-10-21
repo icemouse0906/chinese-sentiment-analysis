@@ -442,6 +442,11 @@ def main():
     # 训练：弱监督标签
     print(f"\n训练模型 (弱监督标签)...")
     model_weak, acc_weak, f1_weak = train_with_weak_labels(X_train, y_weak, X_test, y_test)
+
+    # 导出模型和向量化器
+    import joblib
+    joblib.dump(model_weak, 'results/weak_supervision/svm_model.joblib')
+    joblib.dump(vectorizer, 'results/weak_supervision/tfidf_vectorizer.joblib')
     
     # 训练：SnowNLP标签
     print(f"训练模型 (SnowNLP伪标签)...")
