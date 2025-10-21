@@ -435,6 +435,212 @@ python run.py --dataset hotel --model nb --seed 42 --mode pseudo --stage report
 	<img src="results/电商_NB_cm.png" alt="电商NB混淆矩阵" width="350">
 </p>
 
+## 技术展望与未来方向 | Future Directions
+
+### 🚀 拥抱大语言模型 (LLMs) 范式
+
+当前Transformer基线采用经典的微调（Fine-tuning）范式，下一步可以探索更前沿的LLM应用：
+
+#### 1. Few-shot / Zero-shot 情感分类
+- 基于GPT系列、Llama系列或同级别开源模型（如Qwen、ChatGLM）的few-shot/zero-shot分类
+- 通过Prompt Engineering实现更复杂的分析任务：
+  - **ABSA三元组提取**：识别评论中的（方面词，观点词，情感极性）
+  - **原因挖掘**：自动生成情感归因分析（如"负面原因：价格偏高、服务态度差"）
+  - **细粒度情感分析**：多维度情感评分（服务、环境、性价比等）
+
+#### 2. RAG (Retrieval-Augmented Generation) 架构
+- **句向量检索 + LLM生成**：为误判案例提供更具解释性的分析报告
+- **知识库增强**：结合行业知识库（如酒店服务标准、电商品类特征）提升领域适应性
+- **实时反馈闭环**：将人工审核的误判样本纳入检索库，持续优化生成质量
+
+**实现路线图**：
+```python
+# 伪代码示例
+retriever = VectorStore(embeddings="bge-large-zh")  # 中文句向量模型
+llm = LLM("Qwen2.5-7B-Instruct")  # 开源中文大模型
+
+# Few-shot情感分类
+prompt = f"""
+以下是几个示例：
+1. "服务态度非常好，环境整洁" → 正面
+2. "价格太贵，性价比低" → 负面
+
+请判断以下评论的情感：
+"{user_review}"
+"""
+result = llm.generate(prompt)
+
+# RAG增强误判分析
+similar_cases = retriever.search(error_sample, top_k=3)
+analysis_prompt = f"""
+参考以下相似误判案例：
+{similar_cases}
+
+请分析为什么模型将"{error_sample}"误判为{pred_label}（真实标签：{true_label}）
+"""
+explanation = llm.generate(analysis_prompt)
+```
+
+---
+
+### 🔄 构建自动化的MLOps流水线 (CI/CD for ML)
+
+当前的`run.py`是手动触发的，下一步可以构建端到端的自动化流水线：
+
+#### 1. GitHub Actions / Jenkins 自动化工作流
+
+**触发条件**：
+- 代码更新（新增特征、模型改进）
+- 数据更新（增量数据到达、标注完成）
+- 定期重训（每周/每月）
+
+**流水线阶段**：
+```yaml
+# .github/workflows/ml_pipeline.yml 示例
+name: ML Pipeline
+on:
+  push:
+    paths:
+      - 'scripts/**'
+      - 'data/**'
+  schedule:
+    - cron: '0 0 * * 0'  # 每周日自动重训
+
+jobs:
+  data-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 数据质量检查
+        run: python scripts/data_validation.py
+      - name: 分布检测
+        run: python scripts/detect_drift.py
+  
+  model-training:
+    needs: data-validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: 训练模型
+        run: python scripts/train_all.py
+      - name: 模型评估
+        run: python scripts/evaluate.py
+      - name: 保存Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: model-checkpoint
+          path: results/
+  
+  deployment:
+    needs: model-training
+    if: success()
+    runs-on: ubuntu-latest
+    steps:
+      - name: 部署到生产环境
+        run: |
+          docker build -t sentiment-api .
+          docker push registry.example.com/sentiment-api:latest
+      - name: 更新Kubernetes服务
+        run: kubectl set image deployment/sentiment-api sentiment-api=registry.example.com/sentiment-api:latest
+```
+
+#### 2. 核心组件设计
+
+**数据验证层**：
+- Schema校验（列名、数据类型、取值范围）
+- 统计检验（分布偏移检测、缺失值监控）
+- 数据版本管理（DVC、LakeFS）
+
+**模型注册中心**：
+- MLflow Model Registry：版本管理、性能对比、A/B测试
+- 自动选择最优模型（基于验证集F1）
+- Rollback机制：性能下降时自动回滚
+
+**实验追踪**：
+- Weights & Biases / MLflow：超参数、指标、可视化
+- 自动生成实验报告（Markdown/HTML）
+
+---
+
+### 📊 生产环境的实时监控 (Live Monitoring)
+
+API部署后，需要在生产环境中持续监控模型健康状态：
+
+#### 1. 数据漂移监控 (Data Drift Detection)
+
+**监控指标**：
+- **分布偏移**：KL散度、JS散度、Kolmogorov-Smirnov检验
+- **特征统计**：词频分布、文本长度、OOV率
+- **概念漂移**：线上预测分布 vs 训练集标签分布
+
+**实现方案**：
+```python
+# 监控示例
+from evidently import ColumnMapping
+from evidently.report import Report
+from evidently.metric_preset import DataDriftPreset
+
+reference = pd.read_csv("train.csv")  # 训练集作为基准
+production = collect_online_data(last_7_days=True)  # 生产数据
+
+report = Report(metrics=[DataDriftPreset()])
+report.run(reference_data=reference, current_data=production)
+report.save_html("drift_report.html")
+
+# 告警逻辑
+if report.as_dict()["metrics"][0]["result"]["drift_share"] > 0.3:
+    send_alert("检测到30%特征发生漂移，建议重新训练模型")
+```
+
+#### 2. 模型性能监控 (Performance Degradation)
+
+**监控维度**：
+- **预测置信度分布**：低置信度样本比例上升 → 模型不确定性增加
+- **反馈标签准确率**：用户纠正/投诉样本的准确率
+- **延迟监控**：P50/P95/P99推理延迟，QPS
+
+**告警策略**：
+- 准确率下降超过5% → 触发人工审查
+- 低置信度样本占比>20% → 启动主动学习（Active Learning）
+- 推理延迟P95>1s → 模型压缩/硬件扩容
+
+#### 3. 自动再训练机制
+
+**触发条件**：
+- 数据漂移得分 > 阈值
+- 性能衰减 > 阈值
+- 新增标注数据 > N条
+
+**再训练流程**：
+```mermaid
+graph LR
+    A[监控告警] --> B[数据采样]
+    B --> C[人工标注]
+    C --> D[增量训练]
+    D --> E[离线评估]
+    E --> F{性能提升?}
+    F -->|是| G[灰度发布]
+    F -->|否| H[保持现有模型]
+    G --> I[全量上线]
+```
+
+**技术栈推荐**：
+- **监控平台**：Prometheus + Grafana（指标可视化）
+- **日志分析**：ELK Stack（Elasticsearch + Logstash + Kibana）
+- **告警系统**：PagerDuty、企业微信/钉钉机器人
+- **主动学习**：Moderation API（人工审核低置信度样本）
+
+---
+
+### 🎯 实施优先级建议
+
+| 阶段 | 任务 | 技术栈 | 预期收益 |
+|------|------|--------|---------|
+| **Phase 1** | MLOps基础设施 | GitHub Actions + MLflow | 代码/模型版本化，实验可复现 |
+| **Phase 2** | 生产监控系统 | Prometheus + Grafana | 实时发现性能衰减，降低风险 |
+| **Phase 3** | LLM Few-shot探索 | Qwen/ChatGLM + vLLM | 快速适配新场景，降低标注成本 |
+| **Phase 4** | RAG增强分析 | BGE + LangChain | 提升误判可解释性，辅助人工审核 |
+
+---
+
 ## 参考与致谢 | Reference & Acknowledgement
 
 - 部分数据集来源于公开NLP竞赛与学术资源
