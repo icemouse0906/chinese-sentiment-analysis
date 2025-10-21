@@ -30,7 +30,23 @@
 
 本项目针对中文电商、酒店、外卖评论数据，完成了数据检查、预处理、情感分析、分词、LDA主题建模等实验任务，并自动生成实验报告。适用于NLP课程实验、文本分类与主题建模入门。
 
+**🆕 新增功能（2025-10）：**
+- ✅ **MLOps流水线**：GitHub Actions自动化、MLflow实验追踪、Evidently数据漂移检测
+- ✅ **DeepSeek Few-shot分类**：零样本/少样本提示工程，对比传统微调效果
+- ✅ **RAG增强误判分析**：BGE句向量检索 + DeepSeek生成解释性报告
+- ✅ **ABSA三元组提取**：方面级情感分析（方面词、观点词、情感极性）
+
+📖 **快速开始**：[docs/QUICKSTART.md](docs/QUICKSTART.md) | 🔑 **DeepSeek配置**：[docs/DEEPSEEK_SETUP.md](docs/DEEPSEEK_SETUP.md)
+
+---
+
 This project provides a full pipeline for Chinese sentiment analysis and topic modeling on e-commerce, hotel, and takeaway review datasets. It includes data inspection, preprocessing, sentiment labeling, classification, LDA topic modeling, and automated report generation.
+
+**🆕 New Features (Oct 2025):**
+- ✅ **MLOps Pipeline**: GitHub Actions, MLflow tracking, Evidently drift detection
+- ✅ **DeepSeek Few-shot**: Zero/few-shot prompting vs fine-tuning
+- ✅ **RAG Error Analysis**: BGE retrieval + DeepSeek explanations
+- ✅ **ABSA Extraction**: Aspect-Based Sentiment Analysis triplets
 
 ## 目录结构 | Directory Structure
 
