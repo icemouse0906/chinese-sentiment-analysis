@@ -1,12 +1,10 @@
 
 # 中文情感分析与主题建模实验
 
+
 <p align="center">
-	<img src="https://img.shields.io/badge/Python-3.8%2B-blue?logo=python" alt="Python">
-	<img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License">
-	<img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs Welcome">
-	<img src="https://img.shields.io/badge/Auto--Report-Docx-blueviolet?logo=microsoftword" alt="Auto Report">
-	<img src="https://img.shields.io/badge/Data-Chinese%20Reviews-orange" alt="Data">
+	<img src="results/电商_label_distribution.png" alt="电商类别分布" width="350">
+	<img src="results/电商_NB_cm.png" alt="电商NB混淆矩阵" width="350">
 </p>
 
 ---
