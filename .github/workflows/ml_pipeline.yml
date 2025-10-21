@@ -1,0 +1,188 @@
+name: ML Pipeline - 情感分析模型训练与评估
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'scripts/**'
+      - 'data/**'
+      - 'NLP数据集/**'
+  pull_request:
+    branches:
+      - main
+  schedule:
+    - cron: '0 0 * * 0'  # 每周日自动重训
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  data-validation:
+    name: 数据质量检查
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+      
+      - name: 设置Python环境
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+          cache: 'pip'
+      
+      - name: 安装依赖
+        run: |
+          pip install -r requirements.txt
+          pip install evidently mlflow
+      
+      - name: 数据Schema验证
+        run: |
+          python scripts/data_validation.py
+        continue-on-error: false
+      
+      - name: 数据漂移检测
+        run: |
+          python scripts/detect_drift.py
+        continue-on-error: true
+      
+      - name: 上传验证报告
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: data-validation-report
+          path: output/data_validation_*.html
+
+  model-training:
+    name: 模型训练与评估
+    needs: data-validation
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dataset: ['chnsenticorp', 'waimai10k']
+        model: ['nb', 'svm']
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+      
+      - name: 设置Python环境
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+          cache: 'pip'
+      
+      - name: 安装依赖
+        run: |
+          pip install -r requirements.txt
+          pip install mlflow
+      
+      - name: 训练模型 - ${{ matrix.dataset }} - ${{ matrix.model }}
+        env:
+          MLFLOW_TRACKING_URI: sqlite:///mlflow.db
+        run: |
+          python scripts/mlflow_tracking.py \
+            --dataset ${{ matrix.dataset }} \
+            --model ${{ matrix.model }} \
+            --experiment-name "CI-${{ github.run_number }}"
+      
+      - name: 上传模型Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-${{ matrix.dataset }}-${{ matrix.model }}
+          path: |
+            results/${{ matrix.dataset }}/${{ matrix.model }}/
+            mlruns/
+      
+      - name: 评估报告
+        run: |
+          python scripts/evaluate_and_report.py \
+            --dataset ${{ matrix.dataset }} \
+            --model ${{ matrix.model }}
+      
+      - name: 上传评估报告
+        uses: actions/upload-artifact@v4
+        with:
+          name: evaluation-${{ matrix.dataset }}-${{ matrix.model }}
+          path: results/${{ matrix.dataset }}/${{ matrix.model }}/
+
+  model-comparison:
+    name: 模型性能对比
+    needs: model-training
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+      
+      - name: 下载所有模型结果
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+      
+      - name: 设置Python环境
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+      
+      - name: 安装依赖
+        run: |
+          pip install pandas matplotlib seaborn mlflow
+      
+      - name: 生成对比报告
+        run: |
+          python scripts/compare_models.py --artifacts-dir artifacts/
+      
+      - name: 上传对比报告
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-comparison-report
+          path: output/model_comparison_*.html
+      
+      - name: 发布PR评论（如果是PR触发）
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('output/model_comparison_summary.txt', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## 🤖 模型性能对比报告\n\n${report}`
+            });
+
+  deploy-best-model:
+    name: 部署最优模型
+    needs: model-comparison
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+      
+      - name: 下载所有Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+      
+      - name: 设置Python环境
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+      
+      - name: 选择最优模型
+        run: |
+          python scripts/select_best_model.py --artifacts-dir artifacts/
+      
+      - name: 构建Docker镜像（可选）
+        run: |
+          echo "Docker镜像构建步骤（需要Dockerfile）"
+          # docker build -t sentiment-api:${{ github.sha }} .
+      
+      - name: 更新模型注册表
+        run: |
+          python scripts/register_model.py \
+            --model-path artifacts/best_model/ \
+            --version ${{ github.sha }}
+      
+      - name: 部署通知
+        run: |
+          echo "✅ 模型已更新至版本: ${{ github.sha }}"
